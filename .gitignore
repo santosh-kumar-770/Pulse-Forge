@@ -70,7 +70,7 @@ frontend/node_modules/
 node_modules/
 
 # Production Build Output
-frontend/dist/
+# frontend/dist/ (allowed for Vercel deployment)
 dist/
 build/
 .vite/

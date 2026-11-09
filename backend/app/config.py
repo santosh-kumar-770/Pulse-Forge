@@ -11,4 +11,22 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
+    @property
+    def async_database_url(self) -> str:
+        url = (self.DATABASE_URL or "").strip()
+        if not url:
+            url = "sqlite+aiosqlite:///./pulseforge.db"
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        # asyncpg does not support sslmode=require and channel_binding=require query parameters in SQLAlchemy URLs
+        if "sslmode=require" in url:
+            url = url.replace("sslmode=require", "ssl=require")
+        if "&channel_binding=require" in url:
+            url = url.replace("&channel_binding=require", "")
+        elif "?channel_binding=require" in url:
+            url = url.replace("?channel_binding=require", "")
+        return url
+
 settings = Settings()

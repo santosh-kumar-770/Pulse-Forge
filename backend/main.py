@@ -8,11 +8,13 @@ from app.routers import auth, rooms, tasks, important, achievements, timeline
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB schema
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    # Seed initial realistic hackathon war-room data
-    await seed_data()
+    # Initialize DB schema safely
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        await seed_data()
+    except Exception as e:
+        print(f"Database initialization warning on startup: {e}")
     yield
 
 app = FastAPI(
@@ -22,7 +24,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration for React + Vite development server
+# CORS configuration for React + Vite development server & production
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -58,7 +60,18 @@ async def root():
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "pulseforge-backend"}
+    db_status = "connected"
+    try:
+        async with engine.connect() as conn:
+            from sqlalchemy import text
+            await conn.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    return {
+        "status": "ok",
+        "service": "pulseforge-backend",
+        "database": db_status
+    }
 
 if __name__ == "__main__":
     import uvicorn
