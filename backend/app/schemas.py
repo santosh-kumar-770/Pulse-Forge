@@ -39,6 +39,8 @@ class Token(BaseModel):
 class RoomBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=150)
     mission_statement: Optional[str] = None
+    is_private: bool = False
+    requires_approval: bool = True
 
 class RoomCreate(RoomBase):
     slug: Optional[str] = None
@@ -46,6 +48,14 @@ class RoomCreate(RoomBase):
 class RoomUpdate(BaseModel):
     name: Optional[str] = None
     mission_statement: Optional[str] = None
+    is_private: Optional[bool] = None
+    requires_approval: Optional[bool] = None
+
+class RoomSettingsUpdate(BaseModel):
+    name: Optional[str] = None
+    mission_statement: Optional[str] = None
+    is_private: Optional[bool] = None
+    requires_approval: Optional[bool] = None
 
 class RoomMemberOut(BaseModel):
     id: int
@@ -60,6 +70,22 @@ class AddMemberRequest(BaseModel):
     email: EmailStr
     role: str = "member"
 
+class JoinRequestCreate(BaseModel):
+    message: Optional[str] = None
+
+class JoinRequestReview(BaseModel):
+    action: str = Field(..., pattern="^(accept|reject)$")
+
+class JoinRequestOut(BaseModel):
+    id: int
+    room_id: int
+    user_id: int
+    status: str
+    message: Optional[str] = None
+    created_at: datetime
+    user: Optional[UserOut] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class RoomOut(RoomBase):
     id: int
     slug: str
@@ -67,10 +93,47 @@ class RoomOut(RoomBase):
     created_at: datetime
     my_role: Optional[str] = None
     member_count: Optional[int] = 0
+    pending_request_count: Optional[int] = 0
     model_config = ConfigDict(from_attributes=True)
 
 class RoomDetailOut(RoomOut):
     members: List[RoomMemberOut] = []
+    pending_requests: List[JoinRequestOut] = []
+    model_config = ConfigDict(from_attributes=True)
+
+class PublicRoomDiscoveryOut(BaseModel):
+    id: int
+    name: str
+    slug: str
+    mission_statement: Optional[str] = None
+    is_private: bool = False
+    requires_approval: bool = True
+    created_by: int
+    created_at: datetime
+    member_count: int = 0
+    owner_name: Optional[str] = None
+    owner_avatar: Optional[str] = None
+    my_status: Optional[str] = "none"  # 'member', 'pending', 'rejected', 'none'
+    model_config = ConfigDict(from_attributes=True)
+
+# ----------------- Message (War-Room Chat) Schemas -----------------
+class MessageBase(BaseModel):
+    content: str = Field(..., min_length=1, max_length=5000)
+
+class MessageCreate(MessageBase):
+    pass
+
+class MessagePinUpdate(BaseModel):
+    is_pinned: bool
+
+class MessageOut(BaseModel):
+    id: int
+    room_id: int
+    sender_id: int
+    content: str
+    is_pinned: bool = False
+    created_at: datetime
+    sender: Optional[UserOut] = None
     model_config = ConfigDict(from_attributes=True)
 
 # ----------------- Task Schemas -----------------

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { X, UserPlus, AlertCircle } from 'lucide-react';
+import { X, UserPlus, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { useRoom } from '../../context/RoomContext';
 import { roomsApi } from '../../api/rooms';
 
 export default function JoinRoomModal({ isOpen, onClose }) {
-  const { refreshRooms, switchRoom } = useRoom();
+  const { refreshRooms, switchRoom, setAwaitingRoom } = useRoom();
 
   const [slug, setSlug] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   if (!isOpen) return null;
 
@@ -19,11 +20,26 @@ export default function JoinRoomModal({ isOpen, onClose }) {
     try {
       setIsSubmitting(true);
       setError('');
-      const joinedRoom = await roomsApi.joinRoomBySlug(slug.trim());
-      await refreshRooms(joinedRoom.id);
-      switchRoom(joinedRoom);
-      onClose();
-      setSlug('');
+      setInfo('');
+      const res = await roomsApi.joinRoomBySlug(slug.trim());
+
+      if (res.status === 'pending') {
+        setInfo(res.message || 'This room requires host approval. Your request is pending.');
+        if (res.room) {
+          setAwaitingRoom(res.room);
+        }
+        setTimeout(() => {
+          onClose();
+          setSlug('');
+          setInfo('');
+        }, 2500);
+      } else {
+        const roomObj = res.room || res;
+        await refreshRooms(roomObj.id);
+        switchRoom(roomObj);
+        onClose();
+        setSlug('');
+      }
     } catch (err) {
       setError(err.message || 'Room not found with this code.');
     } finally {
@@ -55,6 +71,13 @@ export default function JoinRoomModal({ isOpen, onClose }) {
           <div className="mb-4 p-3 flex items-center gap-2 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {info && (
+          <div className="mb-4 p-3 flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl text-xs">
+            <Clock className="w-4 h-4 shrink-0" />
+            <span>{info}</span>
           </div>
         )}
 

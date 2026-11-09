@@ -1,17 +1,36 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.database import engine, Base
 from app.seed import seed_data
-from app.routers import auth, rooms, tasks, important, achievements, timeline
+from app.routers import auth, rooms, tasks, important, achievements, timeline, messages
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize DB schema safely
     try:
         async with engine.begin() as conn:
+            # 1. Create any missing tables (room_join_requests, messages, etc.)
             await conn.run_sync(Base.metadata.create_all)
+            
+            # 2. Add columns to rooms table if they do not exist
+            try:
+                await conn.execute(text("ALTER TABLE rooms ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE"))
+                await conn.execute(text("ALTER TABLE rooms ADD COLUMN IF NOT EXISTS requires_approval BOOLEAN DEFAULT TRUE"))
+            except Exception:
+                # Fallback for SQLite which doesn't support IF NOT EXISTS in ALTER TABLE
+                try:
+                    await conn.execute(text("ALTER TABLE rooms ADD COLUMN is_private BOOLEAN DEFAULT 0"))
+                except Exception:
+                    pass
+                try:
+                    await conn.execute(text("ALTER TABLE rooms ADD COLUMN requires_approval BOOLEAN DEFAULT 1"))
+                except Exception:
+                    pass
+
+        # 3. Seed data
         await seed_data()
     except Exception as e:
         print(f"Database initialization warning on startup: {e}")
@@ -20,7 +39,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PulseForge API",
     description="High-velocity workspace and war-room tracker built for hackathons and early-stage startup teams.",
-    version="1.0.0",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -47,13 +66,14 @@ app.include_router(tasks.router)
 app.include_router(important.router)
 app.include_router(achievements.router)
 app.include_router(timeline.router)
+app.include_router(messages.router)
 
 @app.get("/")
 async def root():
     return {
         "app": "PulseForge API",
         "status": "operational",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "docs": "/docs",
         "description": "High-velocity war-room tracker for hackathons and startups"
     }
@@ -63,7 +83,6 @@ async def health():
     db_status = "connected"
     try:
         async with engine.connect() as conn:
-            from sqlalchemy import text
             await conn.execute(text("SELECT 1"))
     except Exception as e:
         db_status = f"error: {str(e)}"

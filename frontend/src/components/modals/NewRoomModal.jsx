@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Layers, AlertCircle } from 'lucide-react';
+import { X, Layers, AlertCircle, Globe, Lock, UserCheck } from 'lucide-react';
 import { useRoom } from '../../context/RoomContext';
 import { roomsApi } from '../../api/rooms';
 
@@ -9,6 +9,8 @@ export default function NewRoomModal({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [missionStatement, setMissionStatement] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [requiresApproval, setRequiresApproval] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,6 +27,8 @@ export default function NewRoomModal({ isOpen, onClose }) {
         name: name.trim(),
         slug: slug.trim() || undefined,
         mission_statement: missionStatement.trim() || null,
+        is_private: isPrivate,
+        requires_approval: requiresApproval,
       });
 
       await refreshRooms(newRoom.id);
@@ -33,6 +37,8 @@ export default function NewRoomModal({ isOpen, onClose }) {
       setName('');
       setSlug('');
       setMissionStatement('');
+      setIsPrivate(false);
+      setRequiresApproval(true);
     } catch (err) {
       setError(err.message || 'Failed to create war room');
     } finally {
@@ -94,18 +100,75 @@ export default function NewRoomModal({ isOpen, onClose }) {
               onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
               className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
-            <p className="text-[11px] text-slate-500 mt-1">Teammates can use this code to join your room instantly.</p>
+            <p className="text-[11px] text-slate-500 mt-1">Teammates can use this code to join your room.</p>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">Mission Statement</label>
             <textarea
-              rows={3}
+              rows={2}
               placeholder="What is the north-star goal for this sprint? (e.g., Ship an autonomous multimodal agent in 36h and win Best Overall)"
               value={missionStatement}
               onChange={(e) => setMissionStatement(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
             />
+          </div>
+
+          {/* Privacy & Approval Settings */}
+          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {isPrivate ? <Lock className="w-4 h-4 text-amber-400" /> : <Globe className="w-4 h-4 text-emerald-400" />}
+                <div>
+                  <span className="text-xs font-semibold text-slate-200 block">
+                    {isPrivate ? 'Private War Room' : 'Public Workspace'}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isPrivate ? 'Hidden from directory, invite link only' : 'Discoverable in open directory'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isPrivate ? 'bg-amber-600' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    isPrivate ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="border-t border-slate-800/80 pt-2.5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-indigo-400" />
+                <div>
+                  <span className="text-xs font-semibold text-slate-200 block">
+                    Require Host Approval
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {requiresApproval ? 'Hosts review & accept join requests' : 'Anyone can join instantly'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRequiresApproval(!requiresApproval)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  requiresApproval ? 'bg-indigo-600' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    requiresApproval ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-3">
@@ -119,9 +182,9 @@ export default function NewRoomModal({ isOpen, onClose }) {
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+              className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
             >
-              {isSubmitting ? 'Creating...' : 'Launch Room'}
+              {isSubmitting ? 'Creating...' : 'Launch War Room'}
             </button>
           </div>
         </form>

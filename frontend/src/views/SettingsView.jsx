@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Layers,
@@ -7,22 +7,36 @@ import {
   User,
   Shield,
   Save,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  Globe,
+  UserCheck
 } from 'lucide-react';
 import { useRoom } from '../context/RoomContext';
 import { useAuth } from '../context/AuthContext';
 import { roomsApi } from '../api/rooms';
 
-export default function SettingsView({ onOpenProfileModal }) {
+export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings }) {
   const { activeRoom, myRole, refreshRooms } = useRoom();
   const { user } = useAuth();
 
   const [name, setName] = useState(activeRoom?.name || '');
   const [missionStatement, setMissionStatement] = useState(activeRoom?.mission_statement || '');
+  const [isPrivate, setIsPrivate] = useState(Boolean(activeRoom?.is_private));
+  const [requiresApproval, setRequiresApproval] = useState(activeRoom?.requires_approval !== false);
   const [isCopied, setIsCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (activeRoom) {
+      setName(activeRoom.name || '');
+      setMissionStatement(activeRoom.mission_statement || '');
+      setIsPrivate(Boolean(activeRoom.is_private));
+      setRequiresApproval(activeRoom.requires_approval !== false);
+    }
+  }, [activeRoom]);
 
   const canEdit = myRole === 'owner' || myRole === 'admin';
 
@@ -42,9 +56,11 @@ export default function SettingsView({ onOpenProfileModal }) {
       setIsSaving(true);
       setError('');
       setMessage('');
-      await roomsApi.updateRoom(activeRoom.id, {
+      await roomsApi.updateRoomSettings(activeRoom.id, {
         name: name.trim(),
         mission_statement: missionStatement.trim() || null,
+        is_private: isPrivate,
+        requires_approval: requiresApproval,
       });
       await refreshRooms(activeRoom.id);
       setMessage('War room settings updated successfully!');
@@ -80,7 +96,7 @@ export default function SettingsView({ onOpenProfileModal }) {
         </div>
       )}
 
-      {/* SECTION 1: ROOM DETAILS */}
+      {/* SECTION 1: ROOM DETAILS & PRIVACY */}
       <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -88,14 +104,32 @@ export default function SettingsView({ onOpenProfileModal }) {
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-100">War Room Details</h2>
+              <h2 className="text-sm font-bold text-slate-100">War Room Configuration</h2>
               <p className="text-xs text-slate-400">Settings for {activeRoom?.name}</p>
             </div>
           </div>
 
-          <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-400 border border-slate-700">
-            Role: {myRole}
-          </span>
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={onOpenRoomSettings}
+                className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1.5 transition"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                Join Requests
+                {activeRoom?.pending_request_count > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center">
+                    {activeRoom.pending_request_count}
+                  </span>
+                )}
+              </button>
+            )}
+
+            <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-400 border border-slate-700">
+              Role: {myRole}
+            </span>
+          </div>
         </div>
 
         {/* Invite Code Bar */}
@@ -138,6 +172,65 @@ export default function SettingsView({ onOpenProfileModal }) {
               onChange={(e) => setMissionStatement(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 disabled:opacity-60 focus:outline-none focus:border-indigo-500 resize-none"
             />
+          </div>
+
+          {/* Privacy & Approval Controls */}
+          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {isPrivate ? <Lock className="w-4 h-4 text-amber-400" /> : <Globe className="w-4 h-4 text-emerald-400" />}
+                <div>
+                  <span className="text-xs font-semibold text-slate-200 block">
+                    {isPrivate ? 'Private Room' : 'Public Room'}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {isPrivate ? 'Hidden from directory, accessible via invite link only' : 'Discoverable in open directory'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={!canEdit}
+                onClick={() => setIsPrivate(!isPrivate)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                  isPrivate ? 'bg-amber-600' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    isPrivate ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="border-t border-slate-800/60 pt-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <UserCheck className="w-4 h-4 text-indigo-400" />
+                <div>
+                  <span className="text-xs font-semibold text-slate-200 block">
+                    Require Host Approval to Join
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {requiresApproval ? 'Hosts inspect & approve candidates' : 'Members join directly without approval'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={!canEdit}
+                onClick={() => setRequiresApproval(!requiresApproval)}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                  requiresApproval ? 'bg-indigo-600' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    requiresApproval ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {canEdit && (

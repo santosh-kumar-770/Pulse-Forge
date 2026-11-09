@@ -27,6 +27,8 @@ class User(Base):
     created_notes = relationship("ImportantNote", back_populates="creator")
     celebrated_achievements = relationship("Achievement", back_populates="celebrator")
     owned_events = relationship("TimelineEvent", back_populates="owner")
+    join_requests = relationship("RoomJoinRequest", foreign_keys="[RoomJoinRequest.user_id]", back_populates="user", cascade="all, delete-orphan")
+    sent_messages = relationship("Message", back_populates="sender", cascade="all, delete-orphan")
 
 
 class Room(Base):
@@ -36,6 +38,8 @@ class Room(Base):
     name = Column(String(150), nullable=False)
     slug = Column(String(100), unique=True, index=True, nullable=False)
     mission_statement = Column(Text, nullable=True)
+    is_private = Column(Boolean, default=False, nullable=False)
+    requires_approval = Column(Boolean, default=True, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
@@ -46,6 +50,8 @@ class Room(Base):
     achievements = relationship("Achievement", back_populates="room", cascade="all, delete-orphan")
     timeline_events = relationship("TimelineEvent", back_populates="room", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="room", cascade="all, delete-orphan")
+    join_requests = relationship("RoomJoinRequest", back_populates="room", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="room", cascade="all, delete-orphan")
 
 
 class RoomMember(Base):
@@ -59,6 +65,37 @@ class RoomMember(Base):
 
     room = relationship("Room", back_populates="members")
     user = relationship("User", back_populates="room_memberships")
+
+
+class RoomJoinRequest(Base):
+    __tablename__ = "room_join_requests"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(20), default="pending", nullable=False, index=True)  # 'pending', 'accepted', 'rejected'
+    message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    reviewed_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    room = relationship("Room", back_populates="join_requests")
+    user = relationship("User", foreign_keys=[user_id], back_populates="join_requests")
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    is_pinned = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now)
+
+    room = relationship("Room", back_populates="messages")
+    sender = relationship("User", back_populates="sent_messages")
 
 
 class Task(Base):

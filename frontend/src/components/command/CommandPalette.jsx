@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Search, CheckSquare, Pin, Trophy, Clock, Layers, User, X } from 'lucide-react';
+import {
+  Search,
+  CheckSquare,
+  Pin,
+  Trophy,
+  Clock,
+  Layers,
+  User,
+  X,
+  MessageSquare,
+  Shield,
+  Compass
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function CommandPalette({
@@ -11,6 +23,9 @@ export default function CommandPalette({
   onOpenTimelineModal,
   onOpenRoomModal,
   onOpenProfileModal,
+  onOpenRoomSettings,
+  onOpenDiscoverRooms,
+  onToggleChat,
 }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -32,6 +47,39 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   const actions = [
+    {
+      id: 'chat',
+      label: 'Open War-Room Team Chat',
+      desc: 'Toggle the real-time hacker communications drawer',
+      icon: MessageSquare,
+      color: 'text-indigo-400 bg-indigo-500/10',
+      action: () => {
+        onClose(false);
+        onToggleChat();
+      },
+    },
+    {
+      id: 'discover',
+      label: 'Explore Public War Rooms',
+      desc: 'Discover and join active community hackathon sprints',
+      icon: Compass,
+      color: 'text-violet-400 bg-violet-500/10',
+      action: () => {
+        onClose(false);
+        onOpenDiscoverRooms();
+      },
+    },
+    {
+      id: 'settings',
+      label: 'Room Privacy & Join Requests',
+      desc: 'Toggle public/private and review applicant requests',
+      icon: Shield,
+      color: 'text-amber-400 bg-amber-500/10',
+      action: () => {
+        onClose(false);
+        onOpenRoomSettings();
+      },
+    },
     {
       id: 'task',
       label: 'Create New Task',
@@ -150,11 +198,11 @@ export default function CommandPalette({
           </button>
         </div>
 
-        {/* List of actions */}
-        <div className="p-2 max-h-80 overflow-y-auto">
+        {/* Results List */}
+        <div className="max-h-80 overflow-y-auto p-2 space-y-1">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-sm text-slate-500">
-              No matching commands found.
+            <div className="p-6 text-center text-xs text-slate-500">
+              No matching commands or actions found.
             </div>
           ) : (
             filtered.map((item) => {
@@ -163,32 +211,23 @@ export default function CommandPalette({
                 <button
                   key={item.id}
                   onClick={item.action}
-                  className="w-full flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-800/80 transition-colors text-left group"
+                  className="w-full flex items-center gap-3 p-2.5 rounded-xl text-left hover:bg-slate-800/80 transition-colors group"
                 >
-                  <div className={`p-2 rounded-lg border border-slate-800/50 ${item.color}`}>
+                  <div className={`p-2 rounded-lg ${item.color}`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors">
+                  <div className="flex-1 truncate">
+                    <div className="text-xs font-semibold text-slate-200 group-hover:text-white truncate">
                       {item.label}
                     </div>
-                    <div className="text-xs text-slate-500 truncate">{item.desc}</div>
+                    <div className="text-[11px] text-slate-500 truncate">
+                      {item.desc}
+                    </div>
                   </div>
-                  <span className="text-[10px] text-slate-500 bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/50">
-                    Jump
-                  </span>
                 </button>
               );
             })
           )}
-        </div>
-
-        {/* Footer shortcuts */}
-        <div className="px-4 py-2 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-[11px] text-slate-500">
-          <span>PulseForge Quick Action Hub</span>
-          <div className="flex items-center gap-2">
-            <span>Esc to close</span>
-          </div>
         </div>
       </div>
     </div>

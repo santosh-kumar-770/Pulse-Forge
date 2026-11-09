@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { RoomProvider } from './context/RoomContext';
+import { RoomProvider, useRoom } from './context/RoomContext';
 
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
+import AwaitingApprovalScreen from './components/layout/AwaitingApprovalScreen';
 
 import CommandPalette from './components/command/CommandPalette';
 import NewTaskModal from './components/modals/NewTaskModal';
@@ -17,6 +18,9 @@ import NewRoomModal from './components/modals/NewRoomModal';
 import JoinRoomModal from './components/modals/JoinRoomModal';
 import AddMemberModal from './components/modals/AddMemberModal';
 import ProfileModal from './components/modals/ProfileModal';
+import RoomSettingsModal from './components/modals/RoomSettingsModal';
+import DiscoverRoomsModal from './components/modals/DiscoverRoomsModal';
+import WarRoomChatDrawer from './components/chat/WarRoomChatDrawer';
 
 import MissionBoardView from './views/MissionBoardView';
 import TimelineView from './views/TimelineView';
@@ -37,8 +41,9 @@ const queryClient = new QueryClient({
 
 function AppShell() {
   const { user, isLoading } = useAuth();
+  const { isPendingApproval } = useRoom();
 
-  // Modals state
+  // Modals & Panels state
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isImportantModalOpen, setIsImportantModalOpen] = useState(false);
@@ -48,6 +53,9 @@ function AppShell() {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isRoomSettingsOpen, setIsRoomSettingsOpen] = useState(false);
+  const [isDiscoverModalOpen, setIsDiscoverModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -65,21 +73,32 @@ function AppShell() {
   }
 
   return (
-    <RoomProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
-        {/* Top Navbar */}
-        <Navbar
-          onOpenCommandPalette={setIsCommandOpen}
-          onOpenNewRoomModal={() => setIsRoomModalOpen(true)}
-          onOpenJoinRoomModal={() => setIsJoinModalOpen(true)}
-          onOpenProfileModal={() => setIsProfileModalOpen(true)}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
+      {/* Top Navbar */}
+      <Navbar
+        onOpenCommandPalette={setIsCommandOpen}
+        onOpenNewRoomModal={() => setIsRoomModalOpen(true)}
+        onOpenJoinRoomModal={() => setIsJoinModalOpen(true)}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
+        onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
+        onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        isChatOpen={isChatOpen}
+      />
+
+      {/* Main Body */}
+      <div className="flex-1 flex overflow-hidden relative">
+        <Sidebar
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
+          onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
         />
 
-        {/* Main Body */}
-        <div className="flex-1 flex overflow-hidden">
-          <Sidebar />
-
-          <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+          {/* Guard Check: If user has a pending join request for active room */}
+          {isPendingApproval ? (
+            <AwaitingApprovalScreen onOpenDiscover={() => setIsDiscoverModalOpen(true)} />
+          ) : (
             <Routes>
               <Route
                 path="/"
@@ -111,6 +130,7 @@ function AppShell() {
                 element={
                   <MembersView
                     onOpenAddMemberModal={() => setIsAddMemberModalOpen(true)}
+                    onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
                   />
                 }
               />
@@ -119,67 +139,89 @@ function AppShell() {
                 element={
                   <SettingsView
                     onOpenProfileModal={() => setIsProfileModalOpen(true)}
+                    onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
                   />
                 }
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </main>
-        </div>
+          )}
+        </main>
 
-        {/* Global Modals & Command Palette */}
-        <CommandPalette
-          isOpen={isCommandOpen}
-          onClose={setIsCommandOpen}
-          onOpenTaskModal={() => setIsTaskModalOpen(true)}
-          onOpenImportantModal={() => setIsImportantModalOpen(true)}
-          onOpenAchievementModal={() => setIsAchievementModalOpen(true)}
-          onOpenTimelineModal={() => setIsTimelineModalOpen(true)}
-          onOpenRoomModal={() => setIsRoomModalOpen(true)}
-          onOpenProfileModal={() => setIsProfileModalOpen(true)}
-        />
-
-        <NewTaskModal
-          isOpen={isTaskModalOpen}
-          onClose={() => setIsTaskModalOpen(false)}
-        />
-
-        <NewImportantModal
-          isOpen={isImportantModalOpen}
-          onClose={() => setIsImportantModalOpen(false)}
-        />
-
-        <NewAchievementModal
-          isOpen={isAchievementModalOpen}
-          onClose={() => setIsAchievementModalOpen(false)}
-        />
-
-        <NewTimelineModal
-          isOpen={isTimelineModalOpen}
-          onClose={() => setIsTimelineModalOpen(false)}
-        />
-
-        <NewRoomModal
-          isOpen={isRoomModalOpen}
-          onClose={() => setIsRoomModalOpen(false)}
-        />
-
-        <JoinRoomModal
-          isOpen={isJoinModalOpen}
-          onClose={() => setIsJoinModalOpen(false)}
-        />
-
-        <AddMemberModal
-          isOpen={isAddMemberModalOpen}
-          onClose={() => setIsAddMemberModalOpen(false)}
-        />
-
-        <ProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={() => setIsProfileModalOpen(false)}
-        />
+        {/* Real-Time War-Room Team Chat Drawer */}
+        {!isPendingApproval && (
+          <WarRoomChatDrawer
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+          />
+        )}
       </div>
-    </RoomProvider>
+
+      {/* Global Modals & Command Palette */}
+      <CommandPalette
+        isOpen={isCommandOpen}
+        onClose={setIsCommandOpen}
+        onOpenTaskModal={() => setIsTaskModalOpen(true)}
+        onOpenImportantModal={() => setIsImportantModalOpen(true)}
+        onOpenAchievementModal={() => setIsAchievementModalOpen(true)}
+        onOpenTimelineModal={() => setIsTimelineModalOpen(true)}
+        onOpenRoomModal={() => setIsRoomModalOpen(true)}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
+        onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
+        onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
+        onToggleChat={() => setIsChatOpen(prev => !prev)}
+      />
+
+      <NewTaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+      />
+
+      <NewImportantModal
+        isOpen={isImportantModalOpen}
+        onClose={() => setIsImportantModalOpen(false)}
+      />
+
+      <NewAchievementModal
+        isOpen={isAchievementModalOpen}
+        onClose={() => setIsAchievementModalOpen(false)}
+      />
+
+      <NewTimelineModal
+        isOpen={isTimelineModalOpen}
+        onClose={() => setIsTimelineModalOpen(false)}
+      />
+
+      <NewRoomModal
+        isOpen={isRoomModalOpen}
+        onClose={() => setIsRoomModalOpen(false)}
+      />
+
+      <JoinRoomModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+      />
+
+      <AddMemberModal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      <RoomSettingsModal
+        isOpen={isRoomSettingsOpen}
+        onClose={() => setIsRoomSettingsOpen(false)}
+      />
+
+      <DiscoverRoomsModal
+        isOpen={isDiscoverModalOpen}
+        onClose={() => setIsDiscoverModalOpen(false)}
+      />
+    </div>
   );
 }
 
@@ -187,9 +229,11 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <AppShell />
-        </BrowserRouter>
+        <RoomProvider>
+          <BrowserRouter>
+            <AppShell />
+          </BrowserRouter>
+        </RoomProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -9,9 +9,11 @@ import {
   LogOut,
   Layers,
   Sparkles,
-  ExternalLink,
-  ShieldCheck,
-  CheckCircle2
+  Shield,
+  MessageSquare,
+  Compass,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { useRoom } from '../../context/RoomContext';
 import { useAuth } from '../../context/AuthContext';
@@ -22,10 +24,14 @@ export default function Navbar({
   onOpenCommandPalette,
   onOpenNewRoomModal,
   onOpenJoinRoomModal,
-  onOpenProfileModal
+  onOpenProfileModal,
+  onOpenRoomSettings,
+  onOpenDiscoverRooms,
+  onToggleChat,
+  isChatOpen
 }) {
   const { user, logout } = useAuth();
-  const { rooms, activeRoom, switchRoom } = useRoom();
+  const { rooms, activeRoom, switchRoom, myRole } = useRoom();
 
   const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -71,13 +77,15 @@ export default function Navbar({
   }, [nextMilestone]);
 
   const pad = (n) => String(n).padStart(2, '0');
+  const isOwnerOrAdmin = ['owner', 'admin'].includes(myRole);
+  const pendingCount = activeRoom?.pending_request_count || 0;
 
   return (
-    <header className="sticky top-0 z-40 h-16 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-40 h-16 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between">
       {/* Left: Brand + Room Switcher */}
-      <div className="flex items-center gap-4 sm:gap-6">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <div className="relative p-2 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl shadow-lg shadow-indigo-600/30 text-white">
             <Flame className="w-5 h-5 fill-white" />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
@@ -85,7 +93,7 @@ export default function Navbar({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
           </div>
-          <div>
+          <div className="hidden sm:block">
             <div className="flex items-center gap-1.5">
               <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                 PulseForge
@@ -101,24 +109,34 @@ export default function Navbar({
         <div className="relative">
           <button
             onClick={() => setIsRoomDropdownOpen(!isRoomDropdownOpen)}
-            className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition-all text-left"
+            className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition-all text-left"
           >
-            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
-            <div className="max-w-[140px] sm:max-w-[200px] truncate">
-              <div className="text-xs font-bold text-slate-200 truncate">
+            <div className={`w-2 h-2 rounded-full ${activeRoom?.is_private ? 'bg-amber-400 shadow-sm shadow-amber-400' : 'bg-emerald-400 shadow-sm shadow-emerald-400'}`} />
+            <div className="max-w-[120px] sm:max-w-[180px] truncate">
+              <div className="text-xs font-bold text-slate-200 truncate flex items-center gap-1">
+                {activeRoom?.is_private && <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />}
                 {activeRoom?.name || 'Select Room'}
               </div>
               <div className="text-[10px] font-mono text-slate-500 truncate">
                 /{activeRoom?.slug || 'workspace'}
               </div>
             </div>
-            <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 ml-1" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" />
           </button>
 
           {isRoomDropdownOpen && (
             <div className="absolute top-full left-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 animate-fade-in">
-              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-800/80 mb-1">
-                Your Workspaces ({rooms.length})
+              <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-800/80 mb-1 flex items-center justify-between">
+                <span>Your War Rooms ({rooms.length})</span>
+                <button
+                  onClick={() => {
+                    setIsRoomDropdownOpen(false);
+                    onOpenDiscoverRooms();
+                  }}
+                  className="text-indigo-400 hover:text-indigo-300 normal-case font-medium text-[11px] flex items-center gap-1"
+                >
+                  <Compass className="w-3 h-3" /> Explore All
+                </button>
               </div>
 
               <div className="max-h-60 overflow-y-auto space-y-1">
@@ -138,12 +156,26 @@ export default function Navbar({
                       }`}
                     >
                       <div className="truncate mr-2">
-                        <div className="truncate">{room.name}</div>
+                        <div className="truncate flex items-center gap-1.5">
+                          {room.is_private ? (
+                            <Lock className="w-3 h-3 text-amber-400/80 shrink-0" />
+                          ) : (
+                            <Globe className="w-3 h-3 text-emerald-400/80 shrink-0" />
+                          )}
+                          <span className="truncate">{room.name}</span>
+                        </div>
                         <div className="text-[10px] text-slate-500 font-mono">/{room.slug}</div>
                       </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
-                        {room.my_role || 'member'}
-                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {room.pending_request_count > 0 && (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {room.pending_request_count} req
+                          </span>
+                        )}
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                          {room.my_role || 'member'}
+                        </span>
+                      </div>
                     </button>
                   );
                 })}
@@ -172,6 +204,31 @@ export default function Navbar({
             </div>
           )}
         </div>
+
+        {/* Host Room Settings Button (if Owner/Admin) */}
+        {isOwnerOrAdmin && (
+          <button
+            onClick={onOpenRoomSettings}
+            title="Room Privacy & Approval Settings"
+            className="relative p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-indigo-300 border border-slate-800 rounded-xl transition"
+          >
+            <Shield className="w-4 h-4" />
+            {pendingCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-bold text-[9px] flex items-center justify-center animate-bounce shadow-md">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* Explore Public Rooms Pill */}
+        <button
+          onClick={onOpenDiscoverRooms}
+          className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs font-medium transition"
+        >
+          <Compass className="w-3.5 h-3.5 text-violet-400" />
+          <span>Explore</span>
+        </button>
       </div>
 
       {/* Center: Live Hackathon Countdown Clock */}
@@ -216,17 +273,32 @@ export default function Navbar({
         )}
       </div>
 
-      {/* Right: Quick Action Bar + User Pill */}
-      <div className="flex items-center gap-3">
+      {/* Right: War-Room Chat Toggle + Quick Actions + User Pill */}
+      <div className="flex items-center gap-2.5">
+        {/* War-Room Chat Drawer Trigger */}
+        <button
+          onClick={onToggleChat}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition shadow-sm ${
+            isChatOpen
+              ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-600/30'
+              : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800 hover:text-white'
+          }`}
+          title="Toggle War-Room Team Chat"
+        >
+          <MessageSquare className="w-4 h-4 text-indigo-400" />
+          <span className="hidden sm:inline">Comms</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        </button>
+
         {/* Command Palette Trigger Button */}
         <button
           onClick={() => onOpenCommandPalette(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs text-slate-400 hover:text-slate-200 transition-colors shadow-sm"
+          className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs text-slate-400 hover:text-slate-200 transition-colors shadow-sm"
           title="Command Palette (Cmd+K)"
         >
           <Command className="w-3.5 h-3.5 text-indigo-400" />
           <span className="hidden sm:inline">Actions</span>
-          <kbd className="text-[10px] font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-slate-500">
+          <kbd className="hidden sm:inline text-[10px] font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-slate-500">
             ⌘K
           </kbd>
         </button>
@@ -235,14 +307,14 @@ export default function Navbar({
         <div className="relative">
           <button
             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition-all"
+            className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition-all"
           >
             <img
               src={user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
               alt={user?.name}
               className="w-7 h-7 rounded-lg object-cover border border-indigo-500/50"
             />
-            <div className="hidden sm:block text-left max-w-[120px] truncate">
+            <div className="hidden sm:block text-left max-w-[100px] truncate">
               <div className="text-xs font-bold text-slate-200 truncate">{user?.name}</div>
               <div className="text-[10px] text-indigo-400 truncate">{user?.role_title || 'Hacker'}</div>
             </div>
@@ -266,6 +338,19 @@ export default function Navbar({
                 <User className="w-4 h-4 text-indigo-400" />
                 Profile & Skills
               </button>
+
+              {isOwnerOrAdmin && (
+                <button
+                  onClick={() => {
+                    setIsUserDropdownOpen(false);
+                    onOpenRoomSettings();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+                >
+                  <Shield className="w-4 h-4 text-amber-400" />
+                  Room Privacy Settings
+                </button>
+              )}
 
               <button
                 onClick={() => {

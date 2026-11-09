@@ -8,12 +8,14 @@ export function RoomProvider({ children }) {
   const { user } = useAuth();
   const [rooms, setRooms] = useState([]);
   const [activeRoom, setActiveRoom] = useState(null);
+  const [pendingRoom, setPendingRoom] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchRooms = useCallback(async (preferredRoomId = null) => {
     if (!user) {
       setRooms([]);
       setActiveRoom(null);
+      setPendingRoom(null);
       setIsLoading(false);
       return;
     }
@@ -27,6 +29,7 @@ export function RoomProvider({ children }) {
         const storedRoomId = preferredRoomId || localStorage.getItem('pulseforge_active_room_id');
         const match = data.find(r => String(r.id) === String(storedRoomId)) || data[0];
         setActiveRoom(match);
+        setPendingRoom(null);
         localStorage.setItem('pulseforge_active_room_id', String(match.id));
       } else {
         setActiveRoom(null);
@@ -51,7 +54,19 @@ export function RoomProvider({ children }) {
 
     if (targetRoom) {
       setActiveRoom(targetRoom);
+      setPendingRoom(null);
       localStorage.setItem('pulseforge_active_room_id', String(targetRoom.id));
+    }
+  };
+
+  const setAwaitingRoom = (room) => {
+    setPendingRoom(room);
+  };
+
+  const clearAwaitingRoom = () => {
+    setPendingRoom(null);
+    if (rooms.length > 0) {
+      setActiveRoom(rooms[0]);
     }
   };
 
@@ -60,8 +75,11 @@ export function RoomProvider({ children }) {
   return (
     <RoomContext.Provider value={{
       rooms,
-      activeRoom,
-      activeRoomId: activeRoom?.id,
+      activeRoom: pendingRoom || activeRoom,
+      activeRoomId: pendingRoom ? pendingRoom.id : activeRoom?.id,
+      isPendingApproval: Boolean(pendingRoom),
+      setAwaitingRoom,
+      clearAwaitingRoom,
       myRole,
       isLoading,
       switchRoom,
