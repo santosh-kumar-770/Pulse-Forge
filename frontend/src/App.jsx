@@ -7,6 +7,8 @@ import { RoomProvider, useRoom } from './context/RoomContext';
 
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
+import BottomNav from './components/layout/BottomNav';
+import MobileNavDrawer from './components/layout/MobileNavDrawer';
 import AwaitingApprovalScreen from './components/layout/AwaitingApprovalScreen';
 
 import CommandPalette from './components/command/CommandPalette';
@@ -56,6 +58,7 @@ function AppShell() {
   const [isRoomSettingsOpen, setIsRoomSettingsOpen] = useState(false);
   const [isDiscoverModalOpen, setIsDiscoverModalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -84,6 +87,7 @@ function AppShell() {
         onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
         isChatOpen={isChatOpen}
+        onOpenMobileMenu={() => setIsMobileNavOpen(true)}
       />
 
       {/* Main Body */}
@@ -94,7 +98,7 @@ function AppShell() {
           onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-8">
           {/* Guard Check: If user has a pending join request for active room */}
           {isPendingApproval ? (
             <AwaitingApprovalScreen onOpenDiscover={() => setIsDiscoverModalOpen(true)} />
@@ -156,6 +160,27 @@ function AppShell() {
           />
         )}
       </div>
+
+      {/* Bottom Navigation for Mobile */}
+      {!isPendingApproval && (
+        <BottomNav
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          isChatOpen={isChatOpen}
+          onOpenMenu={() => setIsMobileNavOpen(true)}
+        />
+      )}
+
+      {/* Mobile Slide-Over Drawer */}
+      <MobileNavDrawer
+        isOpen={isMobileNavOpen}
+        onClose={() => setIsMobileNavOpen(false)}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        onOpenRoomSettings={() => setIsRoomSettingsOpen(true)}
+        onOpenDiscoverRooms={() => setIsDiscoverModalOpen(true)}
+        onOpenNewRoomModal={() => setIsRoomModalOpen(true)}
+        onOpenJoinRoomModal={() => setIsJoinModalOpen(true)}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
+      />
 
       {/* Global Modals & Command Palette */}
       <CommandPalette

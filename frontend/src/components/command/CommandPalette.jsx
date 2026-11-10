@@ -177,10 +177,10 @@ export default function CommandPalette({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-24 p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center gap-3 px-3.5 sm:px-4 py-3 sm:py-3.5 border-b border-slate-800 bg-slate-950/50">
           <Search className="w-5 h-5 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -188,18 +188,19 @@ export default function CommandPalette({
             placeholder="Type a command or jump to feature (or press Esc)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+            className="flex-1 bg-transparent text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
           <button
             onClick={() => onClose(false)}
-            className="p-1 text-slate-500 hover:text-slate-300 rounded"
+            aria-label="Close command palette"
+            className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition active:scale-95"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Results List */}
-        <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {filtered.length === 0 ? (
             <div className="p-6 text-center text-xs text-slate-500">
               No matching commands or actions found.

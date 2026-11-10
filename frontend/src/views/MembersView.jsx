@@ -40,7 +40,7 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-100 tracking-tight">
               War Room Team & Roles
             </h1>
@@ -59,13 +59,13 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
         </div>
 
         {canManage && (
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={onOpenRoomSettings}
-              className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 rounded-xl text-xs font-semibold transition shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 rounded-xl text-xs font-semibold transition shadow-sm active:scale-95 min-h-[42px]"
             >
               <Shield className="w-4 h-4 text-amber-400" />
-              Room Settings
+              <span>Room Settings</span>
               {pendingCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-slate-950">
                   {pendingCount}
@@ -75,10 +75,10 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
 
             <button
               onClick={onOpenAddMemberModal}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30 active:scale-95 min-h-[42px]"
             >
               <UserPlus className="w-4 h-4" />
-              Add Teammate
+              <span>Add Teammate</span>
             </button>
           </div>
         )}
@@ -86,23 +86,23 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
 
       {/* Pending Join Requests Banner (if Host) */}
       {canManage && pendingCount > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-300">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-amber-500/20 text-amber-300 shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-amber-200">
                 {pendingCount} Candidate {pendingCount === 1 ? 'is' : 'are'} waiting for your approval!
               </h4>
-              <p className="text-xs text-amber-300/80">
+              <p className="text-xs text-amber-300/80 mt-0.5">
                 Hackers have submitted join requests to enter this sprint. Review and accept candidates.
               </p>
             </div>
           </div>
           <button
             onClick={onOpenRoomSettings}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow active:scale-95 shrink-0 text-center"
           >
             Review Candidates
           </button>
@@ -119,20 +119,20 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
           return (
             <div
               key={member.id}
-              className="p-5 bg-slate-900/60 border border-slate-800/80 hover:border-slate-700/80 rounded-2xl transition-all shadow-sm flex flex-col justify-between gap-4"
+              className="p-4 sm:p-5 bg-slate-900/60 border border-slate-800/80 hover:border-slate-700/80 rounded-2xl transition-all shadow-sm flex flex-col justify-between gap-4"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3.5">
                 <img
                   src={u.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.name || 'hacker'}`}
                   alt={u.name}
-                  className="w-12 h-12 rounded-xl object-cover bg-slate-800 border border-slate-700/80 shrink-0"
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover bg-slate-800 border border-slate-700/80 shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-sm font-bold text-slate-100 truncate">
                       {u.name}
                     </h3>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${badge.style}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 ${badge.style}`}>
                       <BadgeIcon className="w-3 h-3" />
                       {badge.label}
                     </span>
@@ -143,12 +143,12 @@ export default function MembersView({ onOpenAddMemberModal, onOpenRoomSettings }
                   </p>
 
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
-                    <Mail className="w-3 h-3 text-slate-500" />
+                    <Mail className="w-3 h-3 text-slate-500 shrink-0" />
                     <span className="truncate">{u.email}</span>
                   </div>
 
                   {u.bio && (
-                    <p className="text-xs text-slate-300 italic mt-2 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-slate-300 italic mt-2 line-clamp-2 leading-relaxed break-words">
                       "{u.bio}"
                     </p>
                   )}

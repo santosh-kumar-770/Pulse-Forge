@@ -101,7 +101,7 @@ export default function LoginView() {
         </div>
 
         {/* Auth Box */}
-        <div className="p-6 sm:p-8 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl">
+        <div className="p-5 sm:p-8 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl">
           {/* Mode Tabs */}
           <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 border border-slate-800 rounded-xl mb-6">
             <button
@@ -109,7 +109,7 @@ export default function LoginView() {
                 setMode('login');
                 setError('');
               }}
-              className={`py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
                 mode === 'login'
                   ? 'bg-indigo-600 text-white shadow'
                   : 'text-slate-400 hover:text-slate-200'
@@ -122,7 +122,7 @@ export default function LoginView() {
                 setMode('signup');
                 setError('');
               }}
-              className={`py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
                 mode === 'signup'
                   ? 'bg-indigo-600 text-white shadow'
                   : 'text-slate-400 hover:text-slate-200'
@@ -150,7 +150,7 @@ export default function LoginView() {
                     placeholder="Alex Rivera"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -160,7 +160,7 @@ export default function LoginView() {
                     placeholder="AI Engineer / Lead Architect"
                     value={roleTitle}
                     onChange={(e) => setRoleTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </>
@@ -174,7 +174,7 @@ export default function LoginView() {
                 placeholder="alex@pulseforge.dev"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -186,14 +186,14 @@ export default function LoginView() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mt-2 active:scale-95"
             >
               {isSubmitting ? (
                 'Processing...'
@@ -214,14 +214,14 @@ export default function LoginView() {
               <span className="text-[10px] text-indigo-400 font-mono">1-Click Login</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {demoAccounts.map((account) => (
                 <button
                   key={account.email}
                   type="button"
                   onClick={() => handleDemoLogin(account.email)}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 p-2 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl text-left transition-all group"
+                  className="flex items-center gap-2 p-2 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 rounded-xl text-left transition-all group active:scale-95"
                 >
                   <img
                     src={account.avatar}

@@ -7,6 +7,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        'xs': '420px',
+      },
       colors: {
         brand: {
           50: '#eef2ff',

@@ -84,40 +84,40 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
 
       {message && (
         <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <Check className="w-4 h-4" />
+          <Check className="w-4 h-4 shrink-0" />
           <span>{message}</span>
         </div>
       )}
 
       {error && (
         <div className="p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
+          <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* SECTION 1: ROOM DETAILS & PRIVACY */}
-      <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-xl">
+            <div className="p-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-xl shrink-0">
               <Layers className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-100">War Room Configuration</h2>
-              <p className="text-xs text-slate-400">Settings for {activeRoom?.name}</p>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-slate-100 truncate">War Room Configuration</h2>
+              <p className="text-xs text-slate-400 truncate">Settings for {activeRoom?.name}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {canEdit && (
               <button
                 type="button"
                 onClick={onOpenRoomSettings}
-                className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1.5 transition"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1.5 transition active:scale-95"
               >
                 <Shield className="w-3.5 h-3.5 text-amber-400" />
-                Join Requests
+                <span>Join Requests</span>
                 {activeRoom?.pending_request_count > 0 && (
                   <span className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center">
                     {activeRoom.pending_request_count}
@@ -126,28 +126,28 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
               </button>
             )}
 
-            <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-400 border border-slate-700">
+            <span className="text-xs font-mono px-2.5 py-1.5 rounded-lg bg-slate-800 text-indigo-400 border border-slate-700">
               Role: {myRole}
             </span>
           </div>
         </div>
 
         {/* Invite Code Bar */}
-        <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between gap-3">
-          <div>
+        <div className="p-3 sm:p-3.5 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Shareable Room Code / Slug
             </div>
-            <div className="text-sm font-mono font-bold text-indigo-300 mt-0.5">
+            <div className="text-sm font-mono font-bold text-indigo-300 mt-0.5 truncate">
               {activeRoom?.slug}
             </div>
           </div>
           <button
             onClick={handleCopySlug}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition active:scale-95 shrink-0"
           >
             {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            {isCopied ? 'Copied' : 'Copy Code'}
+            <span>{isCopied ? 'Copied' : 'Copy'}</span>
           </button>
         </div>
 
@@ -159,7 +159,7 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
               disabled={!canEdit}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 disabled:opacity-60 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 disabled:opacity-60 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -170,20 +170,22 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
               disabled={!canEdit}
               value={missionStatement}
               onChange={(e) => setMissionStatement(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 disabled:opacity-60 focus:outline-none focus:border-indigo-500 resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 disabled:opacity-60 focus:outline-none focus:border-indigo-500 resize-none"
             />
           </div>
 
           {/* Privacy & Approval Controls */}
-          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                {isPrivate ? <Lock className="w-4 h-4 text-amber-400" /> : <Globe className="w-4 h-4 text-emerald-400" />}
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                <div className="mt-0.5 sm:mt-0 shrink-0">
+                  {isPrivate ? <Lock className="w-4 h-4 text-amber-400" /> : <Globe className="w-4 h-4 text-emerald-400" />}
+                </div>
                 <div>
                   <span className="text-xs font-semibold text-slate-200 block">
                     {isPrivate ? 'Private Room' : 'Public Room'}
                   </span>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-400 block leading-tight">
                     {isPrivate ? 'Hidden from directory, accessible via invite link only' : 'Discoverable in open directory'}
                   </span>
                 </div>
@@ -192,26 +194,28 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
                 type="button"
                 disabled={!canEdit}
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 active:scale-95 ${
                   isPrivate ? 'bg-amber-600' : 'bg-slate-700'
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    isPrivate ? 'translate-x-4' : 'translate-x-0'
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    isPrivate ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
 
-            <div className="border-t border-slate-800/60 pt-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <UserCheck className="w-4 h-4 text-indigo-400" />
+            <div className="border-t border-slate-800/60 pt-3 flex items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                <div className="mt-0.5 sm:mt-0 shrink-0">
+                  <UserCheck className="w-4 h-4 text-indigo-400" />
+                </div>
                 <div>
                   <span className="text-xs font-semibold text-slate-200 block">
                     Require Host Approval to Join
                   </span>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-400 block leading-tight">
                     {requiresApproval ? 'Hosts inspect & approve candidates' : 'Members join directly without approval'}
                   </span>
                 </div>
@@ -220,13 +224,13 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
                 type="button"
                 disabled={!canEdit}
                 onClick={() => setRequiresApproval(!requiresApproval)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 active:scale-95 ${
                   requiresApproval ? 'bg-indigo-600' : 'bg-slate-700'
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    requiresApproval ? 'translate-x-4' : 'translate-x-0'
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    requiresApproval ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -238,10 +242,10 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-1.5 transition active:scale-95"
               >
                 <Save className="w-3.5 h-3.5" />
-                {isSaving ? 'Saving...' : 'Save Workspace Changes'}
+                <span>{isSaving ? 'Saving...' : 'Save Workspace Changes'}</span>
               </button>
             </div>
           )}
@@ -249,23 +253,23 @@ export default function SettingsView({ onOpenProfileModal, onOpenRoomSettings })
       </div>
 
       {/* SECTION 2: PROFILE SHORTCUT */}
-      <div className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl flex items-center justify-between">
+      <div className="p-4 sm:p-6 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img
             src={user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'}
             alt={user?.name}
-            className="w-12 h-12 rounded-2xl object-cover border border-slate-700"
+            className="w-12 h-12 rounded-2xl object-cover border border-slate-700 shrink-0"
           />
-          <div>
-            <h3 className="text-sm font-bold text-slate-100">{user?.name}</h3>
-            <p className="text-xs text-indigo-400">{user?.role_title || 'Hacker'}</p>
-            <p className="text-[11px] text-slate-500">{user?.email}</p>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-slate-100 truncate">{user?.name}</h3>
+            <p className="text-xs text-indigo-400 truncate">{user?.role_title || 'Hacker'}</p>
+            <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
           </div>
         </div>
 
         <button
           onClick={onOpenProfileModal}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors"
+          className="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition active:scale-95 text-center"
         >
           Edit Profile & Skills
         </button>

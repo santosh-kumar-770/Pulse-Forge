@@ -48,21 +48,22 @@ export default function JoinRoomModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <div className="relative w-full max-w-md p-5 sm:p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-800 transition-colors"
+          aria-label="Close dialog"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 text-slate-400 hover:text-slate-100 rounded-xl hover:bg-slate-800 transition active:scale-95"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400">
+        <div className="flex items-center gap-3 mb-5 pr-8">
+          <div className="p-2 sm:p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 shrink-0">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-100">Join Existing War Room</h2>
+            <h2 className="text-base sm:text-lg font-bold text-slate-100">Join Existing War Room</h2>
             <p className="text-xs text-slate-400">Enter the room slug or invite code shared by your team</p>
           </div>
         </div>
@@ -90,24 +91,24 @@ export default function JoinRoomModal({ isOpen, onClose }) {
               placeholder="e.g., hackzurich-2026-ai"
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase().trim())}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm font-mono text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3">
+          <div className="flex items-center justify-end gap-2.5 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-colors"
+              className="flex-1 sm:flex-initial px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium rounded-xl transition active:scale-95 text-center min-h-[42px]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !slug.trim()}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition-all"
+              className="flex-1 sm:flex-initial px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition active:scale-95 text-center min-h-[42px]"
             >
-              {isSubmitting ? 'Joining...' : 'Enter War Room'}
+              {isSubmitting ? 'Joining...' : 'Enter Room'}
             </button>
           </div>
         </form>

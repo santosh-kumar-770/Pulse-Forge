@@ -185,7 +185,7 @@ export default function WarRoomChatDrawer({ isOpen, onClose }) {
   const pinnedMessages = messages.filter(m => m.is_pinned);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[420px] bg-slate-900/95 border-l border-slate-800 backdrop-blur-xl shadow-2xl flex flex-col animate-slideLeft transition-all duration-300">
+    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-slate-900/98 border-l border-slate-800 backdrop-blur-xl shadow-2xl flex flex-col animate-slideLeft transition-all duration-300">
       {/* Drawer Header */}
       <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-800 bg-slate-950/50">
         <div className="flex items-center gap-2.5">
@@ -382,7 +382,7 @@ export default function WarRoomChatDrawer({ isOpen, onClose }) {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type war-room message... (Enter to send)"
-            className="w-full pl-3 pr-10 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none max-h-24"
+            className="w-full pl-3 pr-10 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none max-h-24"
           />
           <button
             type="submit"
