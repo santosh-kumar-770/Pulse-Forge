@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { X, Pin, Link2, KeyRound, FileText, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Pin, Link2, KeyRound, FileText, AlertCircle, Edit3 } from 'lucide-react';
 import { useRoom } from '../../context/RoomContext';
 import { importantApi } from '../../api/important';
 import { useQueryClient } from '@tanstack/react-query';
 
-export default function NewImportantModal({ isOpen, onClose }) {
+export default function NewImportantModal({ isOpen, onClose, noteToEdit = null }) {
   const { activeRoomId } = useRoom();
   const queryClient = useQueryClient();
 
@@ -15,6 +15,21 @@ export default function NewImportantModal({ isOpen, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (noteToEdit) {
+      setTitle(noteToEdit.title || '');
+      setContentType(noteToEdit.content_type || 'link');
+      setContent(noteToEdit.content || '');
+      setIsPinned(noteToEdit.is_pinned !== false);
+    } else {
+      setTitle('');
+      setContentType('link');
+      setContent('');
+      setIsPinned(true);
+    }
+    setError('');
+  }, [noteToEdit, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -24,22 +39,25 @@ export default function NewImportantModal({ isOpen, onClose }) {
     try {
       setIsSubmitting(true);
       setError('');
-      await importantApi.createNote(activeRoomId, {
+
+      const payload = {
         title: title.trim(),
         content_type: contentType,
         content: content.trim(),
         is_pinned: isPinned,
-      });
+      };
+
+      if (noteToEdit) {
+        await importantApi.updateNote(activeRoomId, noteToEdit.id, payload);
+      } else {
+        await importantApi.createNote(activeRoomId, payload);
+      }
 
       queryClient.invalidateQueries({ queryKey: ['important', activeRoomId] });
       queryClient.invalidateQueries({ queryKey: ['timeline', activeRoomId] });
       onClose();
-      setTitle('');
-      setContent('');
-      setContentType('link');
-      setIsPinned(true);
     } catch (err) {
-      setError(err.message || 'Failed to pin note');
+      setError(err.message || (noteToEdit ? 'Failed to update item' : 'Failed to pin item'));
     } finally {
       setIsSubmitting(false);
     }
@@ -58,11 +76,15 @@ export default function NewImportantModal({ isOpen, onClose }) {
 
         <div className="flex items-center gap-3 mb-5 pr-8">
           <div className="p-2 sm:p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 shrink-0">
-            <Pin className="w-5 h-5" />
+            {noteToEdit ? <Edit3 className="w-5 h-5" /> : <Pin className="w-5 h-5" />}
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-100">Pin to Knowledge Vault</h2>
-            <p className="text-xs text-slate-400">Quick-access URLs, API keys, endpoints, and critical team notes</p>
+            <h2 className="text-base sm:text-lg font-bold text-slate-100">
+              {noteToEdit ? 'Edit Pinned Knowledge Asset' : 'Pin to Knowledge Vault'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {noteToEdit ? 'Update title, URL, secrets, or content' : 'Quick-access URLs, API keys, endpoints, and critical team notes'}
+            </p>
           </div>
         </div>
 
@@ -174,7 +196,7 @@ export default function NewImportantModal({ isOpen, onClose }) {
               disabled={isSubmitting || !title.trim() || !content.trim()}
               className="flex-1 sm:flex-initial px-5 py-2.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-amber-600/30 transition active:scale-95 text-center min-h-[42px]"
             >
-              {isSubmitting ? 'Pinning...' : 'Pin Item'}
+              {isSubmitting ? 'Saving...' : noteToEdit ? 'Save Changes' : 'Pin Item'}
             </button>
           </div>
         </form>

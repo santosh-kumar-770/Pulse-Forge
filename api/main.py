@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 from app.database import engine, Base
 from app.seed import seed_data
-from app.routers import auth, rooms, tasks, important, achievements, timeline, messages
+from app.routers import auth, rooms, tasks, important, achievements, timeline, messages, cron
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,16 +19,14 @@ async def lifespan(app: FastAPI):
             try:
                 await conn.execute(text("ALTER TABLE rooms ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE"))
                 await conn.execute(text("ALTER TABLE rooms ADD COLUMN IF NOT EXISTS requires_approval BOOLEAN DEFAULT TRUE"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code VARCHAR(10)"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_code_expires_at TIMESTAMP WITH TIME ZONE"))
+                await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP WITH TIME ZONE"))
+                await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deadline_warning_sent BOOLEAN DEFAULT FALSE"))
+                await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS overdue_notice_sent BOOLEAN DEFAULT FALSE"))
             except Exception:
-                # Fallback for SQLite which doesn't support IF NOT EXISTS in ALTER TABLE
-                try:
-                    await conn.execute(text("ALTER TABLE rooms ADD COLUMN is_private BOOLEAN DEFAULT 0"))
-                except Exception:
-                    pass
-                try:
-                    await conn.execute(text("ALTER TABLE rooms ADD COLUMN requires_approval BOOLEAN DEFAULT 1"))
-                except Exception:
-                    pass
+                pass
 
         # 3. Seed data
         await seed_data()
@@ -67,6 +65,7 @@ app.include_router(important.router)
 app.include_router(achievements.router)
 app.include_router(timeline.router)
 app.include_router(messages.router)
+app.include_router(cron.router)
 
 @app.get("/")
 async def root():

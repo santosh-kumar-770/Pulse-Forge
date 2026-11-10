@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -7,6 +8,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "pulseforge-super-secret-jwt-key-2026-hackathon-velocity")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    CRON_SECRET: str = os.getenv("CRON_SECRET", "pulseforge-cron-secret-2026")
+    RESEND_API_KEY: Optional[str] = os.getenv("RESEND_API_KEY", None)
+    FROM_EMAIL: str = os.getenv("FROM_EMAIL", "PulseForge <onboarding@resend.dev>")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://pulse-forge-one.vercel.app")
 
     class Config:
         env_file = ".env"

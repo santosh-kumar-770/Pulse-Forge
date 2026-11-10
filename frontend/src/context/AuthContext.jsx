@@ -47,11 +47,26 @@ export function AuthProvider({ children }) {
 
   const signup = async (userData) => {
     const res = await authApi.signup(userData);
+    if (res.access_token && res.user) {
+      localStorage.setItem('pulseforge_token', res.access_token);
+      localStorage.setItem('pulseforge_user', JSON.stringify(res.user));
+      setToken(res.access_token);
+      setUser(res.user);
+    }
+    return res;
+  };
+
+  const verifyEmail = async (email, code) => {
+    const res = await authApi.verifyEmail({ email, code });
     localStorage.setItem('pulseforge_token', res.access_token);
     localStorage.setItem('pulseforge_user', JSON.stringify(res.user));
     setToken(res.access_token);
     setUser(res.user);
     return res.user;
+  };
+
+  const resendCode = async (email) => {
+    return await authApi.resendCode({ email });
   };
 
   const logout = () => {
@@ -69,7 +84,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signup, verifyEmail, resendCode, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

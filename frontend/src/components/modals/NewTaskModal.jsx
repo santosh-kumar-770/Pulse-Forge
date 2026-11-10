@@ -1,21 +1,52 @@
-import React, { useState } from 'react';
-import { X, CheckSquare, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, CheckSquare, AlertCircle, Edit3 } from 'lucide-react';
 import { useRoom } from '../../context/RoomContext';
 import { tasksApi } from '../../api/tasks';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { roomsApi } from '../../api/rooms';
 
-export default function NewTaskModal({ isOpen, onClose }) {
+export default function NewTaskModal({ isOpen, onClose, taskToEdit = null }) {
   const { activeRoomId } = useRoom();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('backlog');
   const [priority, setPriority] = useState('medium');
   const [assignedTo, setAssignedTo] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Pre-populate fields if editing
+  useEffect(() => {
+    if (taskToEdit) {
+      setTitle(taskToEdit.title || '');
+      setDescription(taskToEdit.description || '');
+      setStatus(taskToEdit.status || 'backlog');
+      setPriority(taskToEdit.priority || 'medium');
+      setAssignedTo(taskToEdit.assigned_to ? String(taskToEdit.assigned_to) : '');
+      if (taskToEdit.due_date) {
+        try {
+          const d = new Date(taskToEdit.due_date);
+          const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+          setDueDate(localIso);
+        } catch {
+          setDueDate('');
+        }
+      } else {
+        setDueDate('');
+      }
+    } else {
+      setTitle('');
+      setDescription('');
+      setStatus('backlog');
+      setPriority('medium');
+      setAssignedTo('');
+      setDueDate('');
+    }
+    setError('');
+  }, [taskToEdit, isOpen]);
 
   // Fetch room members to populate assignee dropdown
   const { data: members = [] } = useQuery({
@@ -33,25 +64,27 @@ export default function NewTaskModal({ isOpen, onClose }) {
     try {
       setIsSubmitting(true);
       setError('');
-      await tasksApi.createTask(activeRoomId, {
+
+      const payload = {
         title: title.trim(),
         description: description.trim() || null,
-        status: 'backlog',
+        status,
         priority,
         assigned_to: assignedTo ? parseInt(assignedTo, 10) : null,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
-      });
+      };
+
+      if (taskToEdit) {
+        await tasksApi.updateTask(activeRoomId, taskToEdit.id, payload);
+      } else {
+        await tasksApi.createTask(activeRoomId, payload);
+      }
 
       queryClient.invalidateQueries({ queryKey: ['tasks', activeRoomId] });
       queryClient.invalidateQueries({ queryKey: ['timeline', activeRoomId] });
       onClose();
-      setTitle('');
-      setDescription('');
-      setPriority('medium');
-      setAssignedTo('');
-      setDueDate('');
     } catch (err) {
-      setError(err.message || 'Failed to create task');
+      setError(err.message || (taskToEdit ? 'Failed to update task' : 'Failed to create task'));
     } finally {
       setIsSubmitting(false);
     }
@@ -70,11 +103,15 @@ export default function NewTaskModal({ isOpen, onClose }) {
 
         <div className="flex items-center gap-3 mb-5 pr-8">
           <div className="p-2 sm:p-2.5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-400 shrink-0">
-            <CheckSquare className="w-5 h-5" />
+            {taskToEdit ? <Edit3 className="w-5 h-5" /> : <CheckSquare className="w-5 h-5" />}
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-100">Create New Task</h2>
-            <p className="text-xs text-slate-400">Add an actionable item to the war-room sprint backlog</p>
+            <h2 className="text-base sm:text-lg font-bold text-slate-100">
+              {taskToEdit ? 'Edit War-Room Task' : 'Create New Task'}
+            </h2>
+            <p className="text-xs text-slate-400">
+              {taskToEdit ? 'Update details, assignee, deadline, or sprint status' : 'Add an actionable item to the war-room sprint backlog'}
+            </p>
           </div>
         </div>
 
@@ -109,7 +146,21 @@ export default function NewTaskModal({ isOpen, onClose }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Sprint Stage</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+              >
+                <option value="backlog">📋 Backlog</option>
+                <option value="in_progress">⚡ In Progress</option>
+                <option value="review">🔍 Review</option>
+                <option value="done">✅ Done</option>
+              </select>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">Priority</label>
               <select
@@ -164,7 +215,7 @@ export default function NewTaskModal({ isOpen, onClose }) {
               disabled={isSubmitting || !title.trim()}
               className="flex-1 sm:flex-initial px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition active:scale-95 text-center min-h-[42px]"
             >
-              {isSubmitting ? 'Adding...' : 'Add Task'}
+              {isSubmitting ? 'Saving...' : taskToEdit ? 'Save Changes' : 'Add Task'}
             </button>
           </div>
         </form>

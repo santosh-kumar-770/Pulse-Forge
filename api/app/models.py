@@ -19,6 +19,10 @@ class User(Base):
     avatar_url = Column(String(500), nullable=True)
     skills = Column(JSON, default=list)
     bio = Column(Text, nullable=True)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    verification_code = Column(String(10), nullable=True)
+    verification_code_expires_at = Column(DateTime(timezone=True), nullable=True)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
     # Relationships
@@ -109,6 +113,8 @@ class Task(Base):
     priority = Column(String(20), default="medium")  # 'low', 'medium', 'high', 'urgent'
     assigned_to = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=True)
+    deadline_warning_sent = Column(Boolean, default=False, nullable=False)
+    overdue_notice_sent = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now)
 
     room = relationship("Room", back_populates="tasks")
