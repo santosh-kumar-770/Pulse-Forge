@@ -70,6 +70,22 @@ export function RoomProvider({ children }) {
     }
   };
 
+  const leaveActiveRoom = async (roomIdToLeave) => {
+    const id = roomIdToLeave || activeRoom?.id;
+    if (!id) return;
+    await roomsApi.leaveRoom(id);
+    const remaining = rooms.filter(r => String(r.id) !== String(id));
+    setRooms(remaining);
+    if (remaining.length > 0) {
+      setActiveRoom(remaining[0]);
+      localStorage.setItem('pulseforge_active_room_id', String(remaining[0].id));
+    } else {
+      setActiveRoom(null);
+      localStorage.removeItem('pulseforge_active_room_id');
+    }
+    await fetchRooms();
+  };
+
   const myRole = activeRoom?.my_role || 'member';
 
   return (
@@ -83,6 +99,7 @@ export function RoomProvider({ children }) {
       myRole,
       isLoading,
       switchRoom,
+      leaveActiveRoom,
       refreshRooms: fetchRooms
     }}>
       {children}

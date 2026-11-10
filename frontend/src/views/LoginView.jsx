@@ -135,7 +135,7 @@ export default function LoginView() {
           {error && (
             <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+              <span>{typeof error === 'string' ? error : JSON.stringify(error)}</span>
             </div>
           )}
 

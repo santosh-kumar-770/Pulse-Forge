@@ -20,4 +20,6 @@ export const roomsApi = {
   // Direct Member Management
   listMembers: (roomId) => api.get(`/rooms/${roomId}/members`),
   addMember: (roomId, data) => api.post(`/rooms/${roomId}/members`, data),
+  removeMember: (roomId, userId) => api.delete(`/rooms/${roomId}/members/${userId}`),
+  leaveRoom: (roomId) => api.post(`/rooms/${roomId}/leave`),
 };

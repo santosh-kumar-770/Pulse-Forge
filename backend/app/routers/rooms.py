@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import func
+from sqlalchemy import func, delete, update
 
 from app.database import get_db
-from app.models import Room, RoomMember, User, AuditLog, RoomJoinRequest
+from app.models import Room, RoomMember, User, AuditLog, RoomJoinRequest, Task
 from app.schemas import (
     RoomCreate, RoomUpdate, RoomSettingsUpdate, RoomOut, RoomDetailOut,
     RoomMemberOut, AddMemberRequest, JoinRequestCreate, JoinRequestReview,
@@ -730,3 +730,142 @@ async def join_room_by_slug(
             "member_count": member_count
         }
     }
+
+
+# ----------------- Remove / Kick Member (Host Only) -----------------
+@router.delete("/{room_id}/members/{user_id}")
+async def remove_room_member(
+    room_id: int,
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Verify requester is the room owner/creator
+    await check_room_membership(room_id, current_user.id, db, allowed_roles=["owner"])
+
+    # Prevent host from kicking themselves
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot remove yourself as host. Transfer ownership or delete the room."
+        )
+
+    # Locate the target member
+    target_res = await db.execute(
+        select(RoomMember)
+        .options(selectinload(RoomMember.user))
+        .where(RoomMember.room_id == room_id, RoomMember.user_id == user_id)
+    )
+    target_member = target_res.scalars().first()
+    if not target_member:
+        raise HTTPException(status_code=404, detail="Member not found in this war room.")
+
+    target_name = target_member.user.name if target_member.user else f"User {user_id}"
+
+    # Unassign active tasks assigned to the kicked member
+    await db.execute(
+        update(Task)
+        .where(Task.room_id == room_id, Task.assigned_to == user_id)
+        .values(assigned_to=None)
+    )
+
+    # Clean up any pending join requests or invites tied to that user
+    await db.execute(
+        delete(RoomJoinRequest)
+        .where(RoomJoinRequest.room_id == room_id, RoomJoinRequest.user_id == user_id)
+    )
+
+    # Remove the target user's record from room_members
+    await db.delete(target_member)
+
+    # Append audit entry to the timeline/activity log
+    audit = AuditLog(
+        room_id=room_id,
+        action_type="member_removed",
+        description=f"{current_user.name} removed {target_name} from the room.",
+        metadata_json={
+            "removed_by": current_user.name,
+            "removed_user": target_name,
+            "target_user_id": user_id
+        }
+    )
+    db.add(audit)
+
+    await db.commit()
+    return {
+        "status": "success",
+        "message": f"{target_name} has been removed from the war room."
+    }
+
+
+# ----------------- Voluntary Leave Room -----------------
+@router.post("/{room_id}/leave")
+async def leave_room(
+    room_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Ensure the requester is an active member
+    mem_res = await db.execute(
+        select(RoomMember)
+        .options(selectinload(RoomMember.room))
+        .where(RoomMember.room_id == room_id, RoomMember.user_id == current_user.id)
+    )
+    member = mem_res.scalars().first()
+    if not member:
+        raise HTTPException(status_code=404, detail="You are not an active member of this room.")
+
+    # Host Protection Rule: If room owner tries to leave, reject with error
+    is_owner = member.role == "owner" or (member.room and member.room.created_by == current_user.id)
+    if is_owner:
+        # Check if there is another owner in the room
+        other_owner_res = await db.execute(
+            select(RoomMember).where(
+                RoomMember.room_id == room_id,
+                RoomMember.user_id != current_user.id,
+                RoomMember.role == "owner"
+            )
+        )
+        if not other_owner_res.scalars().first():
+            raise HTTPException(
+                status_code=400,
+                detail="Host cannot leave the room without transferring ownership or deleting the room."
+            )
+
+    room_name = member.room.name if member.room else f"Room {room_id}"
+
+    # Unassign active tasks assigned to the leaving user
+    await db.execute(
+        update(Task)
+        .where(Task.room_id == room_id, Task.assigned_to == current_user.id)
+        .values(assigned_to=None)
+    )
+
+    # Clean up any pending join requests tied to user
+    await db.execute(
+        delete(RoomJoinRequest)
+        .where(RoomJoinRequest.room_id == room_id, RoomJoinRequest.user_id == current_user.id)
+    )
+
+    # Delete requester's record from room_members
+    await db.delete(member)
+
+    # Append audit entry to timeline
+    audit = AuditLog(
+        room_id=room_id,
+        action_type="member_left",
+        description=f"{current_user.name} left the room.",
+        metadata_json={
+            "user_name": current_user.name,
+            "user_id": current_user.id,
+            "room_name": room_name
+        }
+    )
+    db.add(audit)
+
+    await db.commit()
+    return {
+        "status": "success",
+        "message": f"You have left {room_name}."
+    }
+
