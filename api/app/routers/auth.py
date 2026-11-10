@@ -38,10 +38,16 @@ async def signup(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
 async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == credentials.email.lower()))
     user = result.scalars().first()
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="No account found with this email. Please switch to 'Create Account' tab to sign up.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password. Please verify and try again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

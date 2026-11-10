@@ -16,7 +16,9 @@ export async function apiRequest(endpoint, options = {}) {
     headers,
   });
 
-  if (response.status === 401) {
+  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/signup');
+
+  if (response.status === 401 && !isAuthEndpoint) {
     localStorage.removeItem('pulseforge_token');
     localStorage.removeItem('pulseforge_user');
     window.dispatchEvent(new Event('pulseforge-auth-logout'));

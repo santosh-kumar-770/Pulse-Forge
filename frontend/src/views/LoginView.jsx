@@ -133,9 +133,23 @@ export default function LoginView() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{typeof error === 'string' ? error : JSON.stringify(error)}</span>
+            <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{typeof error === 'string' ? error : JSON.stringify(error)}</span>
+              </div>
+              {mode === 'login' && typeof error === 'string' && error.includes('Create Account') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setError('');
+                  }}
+                  className="self-start text-[11px] font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition"
+                >
+                  👉 Click here to switch to Create Account
+                </button>
+              )}
             </div>
           )}
 
