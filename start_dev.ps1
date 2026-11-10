@@ -2,11 +2,11 @@ Write-Host "===============================================" -ForegroundColor Cy
 Write-Host "      Starting PulseForge Development Suite    " -ForegroundColor Yellow
 Write-Host "===============================================" -ForegroundColor Cyan
 
-$BackendDir = "$PSScriptRoot\backend"
+$BackendDir = "$PSScriptRoot\api"
 $FrontendDir = "$PSScriptRoot\frontend"
 
 Write-Host "`n[1/2] Starting FastAPI Backend on http://localhost:8000..." -ForegroundColor Green
-$BackendProc = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$BackendDir'; & '.\.venv\Scripts\activate'; uvicorn main:app --reload --host 127.0.0.1 --port 8000" -PassThru
+$BackendProc = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$BackendDir'; if (Test-Path '.\.venv\Scripts\Activate.ps1') { & '.\.venv\Scripts\Activate.ps1' } elseif (Test-Path '..\.venv\Scripts\Activate.ps1') { & '..\.venv\Scripts\Activate.ps1' }; uvicorn main:app --reload --host 127.0.0.1 --port 8000" -PassThru
 
 Write-Host "[2/2] Starting React + Vite Frontend on http://localhost:5173..." -ForegroundColor Green
 $FrontendProc = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$FrontendDir'; pnpm run dev" -PassThru

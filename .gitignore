@@ -33,9 +33,9 @@ pnpm-debug.log*
 # ==========================================
 # Python & Backend (FastAPI / SQLAlchemy)
 # ==========================================
-backend/.venv/
-backend/venv/
-backend/env/
+api/.venv/
+api/venv/
+api/env/
 .venv/
 venv/
 env/
@@ -58,10 +58,8 @@ htmlcov/
 *.db-wal
 *.sqlite
 *.sqlite3
-backend/pulseforge.db
-backend/pulseforge.db-journal
-backend/pulseforge.db-wal
-backend/test.db
+pulseforge.db
+api/pulseforge.db
 
 # ==========================================
 # Node.js & Frontend (Vite / React)

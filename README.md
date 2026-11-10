@@ -31,15 +31,12 @@
 
 ### 2. Backend Setup
 ```bash
-cd backend
+cd api
 
 # On Windows:
 .venv\Scripts\activate
 # On macOS / Linux:
 # source .venv/bin/activate
-
-# (Optional) Run seed data script if starting fresh:
-python -m app.seed
 
 # Start the FastAPI server on port 8000:
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
