@@ -27,17 +27,10 @@ class UserUpdate(BaseModel):
 
 class UserOut(UserBase):
     id: int
-    is_verified: bool = False
+    is_verified: bool = True
     last_login_at: Optional[datetime] = None
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
-
-class EmailVerificationRequest(BaseModel):
-    email: EmailStr
-    code: str = Field(..., min_length=4, max_length=10)
-
-class ResendVerificationRequest(BaseModel):
-    email: EmailStr
 
 class Token(BaseModel):
     access_token: str

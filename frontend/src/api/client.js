@@ -16,7 +16,7 @@ export async function apiRequest(endpoint, options = {}) {
     headers,
   });
 
-  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/signup');
+  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/signup') || endpoint.includes('/auth/register');
 
   if (response.status === 401 && !isAuthEndpoint) {
     localStorage.removeItem('pulseforge_token');

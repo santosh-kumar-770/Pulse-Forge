@@ -19,9 +19,7 @@ class User(Base):
     avatar_url = Column(String(500), nullable=True)
     skills = Column(JSON, default=list)
     bio = Column(Text, nullable=True)
-    is_verified = Column(Boolean, default=False, nullable=False)
-    verification_code = Column(String(10), nullable=True)
-    verification_code_expires_at = Column(DateTime(timezone=True), nullable=True)
+    is_verified = Column(Boolean, default=True, nullable=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now)
 

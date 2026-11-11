@@ -1,12 +1,6 @@
 {
   "framework": null,
   "outputDirectory": "frontend/dist",
-  "crons": [
-    {
-      "path": "/api/cron/check-deadlines",
-      "schedule": "0 0 * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api(.*)",

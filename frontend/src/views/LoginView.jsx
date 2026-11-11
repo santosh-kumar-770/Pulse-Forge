@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
-import { Flame, Sparkles, ArrowRight, Lock, Mail, User, ShieldCheck, AlertCircle, CheckCircle2, RotateCw, ArrowLeft, KeyRound } from 'lucide-react';
+import { Flame, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginView() {
-  const { login, signup, verifyEmail, resendCode } = useAuth();
+  const { login, signup } = useAuth();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'verify'
+  const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [roleTitle, setRoleTitle] = useState('Full-Stack Engineer');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [targetEmail, setTargetEmail] = useState('');
-  const [infoMessage, setInfoMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
 
   const demoAccounts = [
@@ -47,60 +43,28 @@ export default function LoginView() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setInfoMessage('');
     setIsSubmitting(true);
 
     try {
       if (mode === 'login') {
         await login(email.trim(), password);
-      } else if (mode === 'signup') {
-        const res = await signup({
+      } else {
+        await signup({
           name: name.trim(),
           email: email.trim(),
           password,
           role_title: roleTitle.trim(),
         });
-        if (res?.status === 'verification_required') {
-          setTargetEmail(email.trim());
-          setMode('verify');
-          setInfoMessage('Verification code sent! Check your inbox to activate your account.');
-        }
-      } else if (mode === 'verify') {
-        await verifyEmail(targetEmail || email.trim(), verificationCode.trim());
       }
     } catch (err) {
-      const msg = err.message || 'Authentication failed';
-      if (msg.toLowerCase().includes('verification') || msg.toLowerCase().includes('verify')) {
-        setTargetEmail(email.trim());
-        setMode('verify');
-        setInfoMessage('Please enter the 6-digit verification code sent to your email.');
-      } else {
-        setError(msg);
-      }
+      setError(err.message || 'Authentication failed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResend = async () => {
-    const toResend = targetEmail || email.trim();
-    if (!toResend) return;
-    try {
-      setIsResending(true);
-      setError('');
-      setInfoMessage('');
-      const res = await resendCode(toResend);
-      setInfoMessage(res?.message || 'A fresh 6-digit verification code has been dispatched.');
-    } catch (err) {
-      setError(err.message || 'Failed to resend code');
-    } finally {
-      setIsResending(false);
-    }
-  };
-
   const handleDemoLogin = async (demoEmail) => {
     setError('');
-    setInfoMessage('');
     setIsSubmitting(true);
     try {
       await login(demoEmail, 'hackathon123');
@@ -138,66 +102,35 @@ export default function LoginView() {
 
         {/* Auth Box */}
         <div className="p-5 sm:p-8 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl">
-          {mode !== 'verify' ? (
-            /* Mode Tabs */
-            <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 border border-slate-800 rounded-xl mb-6">
-              <button
-                onClick={() => {
-                  setMode('login');
-                  setError('');
-                  setInfoMessage('');
-                }}
-                className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
-                  mode === 'login'
-                    ? 'bg-indigo-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => {
-                  setMode('signup');
-                  setError('');
-                  setInfoMessage('');
-                }}
-                className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
-                  mode === 'signup'
-                    ? 'bg-indigo-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Create Account
-              </button>
-            </div>
-          ) : (
-            /* Verification Header */
-            <div className="mb-6 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('login');
-                  setError('');
-                  setInfoMessage('');
-                }}
-                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Login</span>
-              </button>
-              <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
-                OTP Verification
-              </span>
-            </div>
-          )}
-
-          {/* Info Banner */}
-          {infoMessage && (
-            <div className="mb-4 p-3 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-indigo-400 shrink-0" />
-              <span>{infoMessage}</span>
-            </div>
-          )}
+          {/* Mode Tabs */}
+          <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950 border border-slate-800 rounded-xl mb-6">
+            <button
+              onClick={() => {
+                setMode('login');
+                setError('');
+              }}
+              className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+                mode === 'login'
+                  ? 'bg-indigo-600 text-white shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => {
+                setMode('signup');
+                setError('');
+              }}
+              className={`py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+                mode === 'signup'
+                  ? 'bg-indigo-600 text-white shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
 
           {/* Error Banner */}
           {error && (
@@ -223,131 +156,71 @@ export default function LoginView() {
 
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'verify' ? (
-              /* VERIFICATION VIEW */
-              <div className="space-y-4">
-                <div className="text-center py-2">
-                  <div className="inline-flex p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 mb-2">
-                    <KeyRound className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-100">
-                    Verify Your Hacker Email
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                    We sent a 6-digit confirmation code to <span className="text-indigo-400 font-semibold">{targetEmail || email}</span>.
-                  </p>
-                </div>
-
+            {mode === 'signup' && (
+              <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 text-center">
-                    Enter 6-Digit OTP Code
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
                   <input
                     type="text"
                     required
-                    maxLength={6}
-                    pattern="[0-9]{6}"
-                    placeholder="123456"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-center px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-2xl font-mono tracking-[0.5em] text-indigo-300 placeholder:text-slate-700 focus:outline-none focus:border-indigo-500"
-                    autoFocus
-                  />
-                  <p className="text-[11px] text-slate-500 text-center mt-1">
-                    Valid for 15 minutes
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || verificationCode.length < 6}
-                  className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 active:scale-95"
-                >
-                  {isSubmitting ? 'Verifying...' : 'Verify Email & Enter War Room'}
-                </button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={isResending}
-                    className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition"
-                  >
-                    <RotateCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
-                    <span>{isResending ? 'Dispatching code...' : 'Resend 6-Digit Code'}</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* LOGIN & SIGNUP VIEW */
-              <>
-                {mode === 'signup' && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Alex Rivera"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">Role / Focus</label>
-                      <input
-                        type="text"
-                        placeholder="AI Engineer / Lead Architect"
-                        value={roleTitle}
-                        onChange={(e) => setRoleTitle(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="alex@pulseforge.dev"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Alex Rivera"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Role / Focus</label>
                   <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    type="text"
+                    placeholder="AI Engineer / Lead Architect"
+                    value={roleTitle}
+                    onChange={(e) => setRoleTitle(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mt-2 active:scale-95"
-                >
-                  {isSubmitting ? (
-                    'Processing...'
-                  ) : mode === 'login' ? (
-                    <>
-                      Enter War Room <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  ) : (
-                    'Create Hacker Account'
-                  )}
-                </button>
               </>
             )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+              <input
+                type="email"
+                required
+                placeholder="alex@pulseforge.dev"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+              <input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mt-2 active:scale-95"
+            >
+              {isSubmitting ? (
+                'Processing...'
+              ) : mode === 'login' ? (
+                <>
+                  Enter War Room <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              ) : (
+                'Create Hacker Account & Enter'
+              )}
+            </button>
           </form>
 
           {/* Quick 1-Click Demo Accounts (Only on login) */}
